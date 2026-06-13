@@ -1,0 +1,27 @@
+---
+/**
+ * Explore — the faceted species browser. Hydrates SpeciesExplorer at idle with
+ * plain SpeciesSummary props projected from the species collection.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SpeciesExplorer from '../components/SpeciesExplorer';
+import { toSummary } from '../lib/species-view';
+
+const species = (await getCollection('species', (e) => !e.data.draft))
+  .map(toSummary)
+  .sort((a, b) => a.scientificName.localeCompare(b.scientificName));
+
+const description =
+  'Browse and filter shark species by conservation status, order, depth and ' +
+  'region — each entry links to a fully sourced profile.';
+---
+
+<BaseLayout title="Explore species" description={description} canonical="/explore/">
+  <h1>Explore species</h1>
+  <p class="lede">
+    Filter by conservation status, taxonomic order, depth and region. Every
+    profile is mapped, cited and reviewed.
+  </p>
+  <SpeciesExplorer client:idle species={species} />
+</BaseLayout>

@@ -1,0 +1,48 @@
+---
+/**
+ * Map — full-bleed distribution map for a default species (white shark when
+ * present, else the first species). The WebGL map is client:only; the paired
+ * data table (client:visible) provides an accessible, no-JS-friendly fallback.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DistributionMap from '../components/DistributionMap';
+import MapDataTable from '../components/MapDataTable';
+import { preferredCommonName } from '../lib/species-view';
+import type { IucnCategory } from '../components/types';
+
+const species = await getCollection('species', (e) => !e.data.draft);
+const featured =
+  species.find((e) => e.id === 'carcharodon-carcharias') ?? species[0];
+
+const commonName = preferredCommonName(featured);
+const scientificName = featured.data.identity.scientificName;
+const speciesKey = featured.data.externalIds.wormsAphiaId;
+const iucnCategory = featured.data.conservation.iucn.category as IucnCategory;
+
+const description =
+  'Interactive occurrence and range map for sharks, built from GBIF and OBIS ' +
+  'records with an accessible data-table fallback.';
+---
+
+<BaseLayout title="Distribution map" description={description} canonical="/map/">
+  <h1>Distribution map</h1>
+  <p class="lede">
+    Showing occurrence and range data for <em>{scientificName}</em> ({commonName}).
+    Open any species profile for its own map.
+  </p>
+  <DistributionMap
+    client:only="preact"
+    speciesKey={speciesKey}
+    scientificName={scientificName}
+    commonName={commonName}
+    height={560}
+  />
+  <MapDataTable
+    client:visible
+    speciesKey={speciesKey}
+    scientificName={scientificName}
+    commonName={commonName}
+    iucnCategory={iucnCategory}
+  />
+</BaseLayout>

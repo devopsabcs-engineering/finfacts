@@ -1,0 +1,20 @@
+{
+  "scientificName": "Galeocerdonidae",
+  "commonName": "Tiger shark",
+  "authorship": "Poey, 1875",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Carcharhiniformes",
+  "description": {
+    "text": "A family of the ground sharks (Carcharhiniformes) containing the tiger shark. The tiger shark was historically classified within Carcharhinidae (the requiem sharks); current taxonomic authorities recognise it in the separate family Galeocerdonidae. It is a large, generalist apex predator with an exceptionally broad diet.",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 1,
+    "unit": "species",
+    "sources": ["worms"],
+    "confidence": "well-established"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

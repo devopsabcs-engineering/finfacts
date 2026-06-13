@@ -1,0 +1,45 @@
+---
+/**
+ * Filming pathway — renders the pathway-filming lesson then the ShootPlanner
+ * island seeded with every species that has filming guidance (nulls dropped by
+ * `compact`). ShootPlanner hydrates at idle.
+ */
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Citations from '../../components/Citations.astro';
+import ShootPlanner from '../../components/ShootPlanner';
+import { compact, toShootSpecies } from '../../lib/species-view';
+
+const lesson = await getEntry('lessons', 'pathway-filming');
+const species = await getCollection('species', (e) => !e.data.draft);
+const shootSpecies = compact(species.map(toShootSpecies));
+
+let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+let citationIds: string[] = [];
+if (lesson) {
+  Content = (await render(lesson)).Content;
+  citationIds = lesson.data.citations.map((ref) => ref.id);
+}
+
+const description =
+  'Filming sharks responsibly — gear, ambient-light depth budgets, an ethics ' +
+  'checklist and a shoot planner.';
+---
+
+<BaseLayout title="Filming pathway" description={description} canonical="/pathways/filming/">
+  <h1>Filming pathway</h1>
+  {
+    Content && (
+      <div class="prose">
+        <Content />
+      </div>
+    )
+  }
+
+  <section class="pathway-tool" aria-labelledby="shoot-planner-heading">
+    <h2 id="shoot-planner-heading">Plan a shoot</h2>
+    <ShootPlanner client:idle species={shootSpecies} />
+  </section>
+
+  {citationIds.length > 0 && <Citations ids={citationIds} />}
+</BaseLayout>

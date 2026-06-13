@@ -1,0 +1,16 @@
+{
+  "aphiaId": 282352,
+  "scientificName": "Pristiophorus cirratus",
+  "gbifTaxonKey": 2417818,
+  "counts": {
+    "gbif": 1613,
+    "obis": 1643,
+    "total": 3256
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:14:21.464Z"
+}

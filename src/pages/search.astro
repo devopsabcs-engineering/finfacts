@@ -1,0 +1,21 @@
+---
+/**
+ * Search — full-text site search powered by Pagefind. The astro-pagefind
+ * <Search> component loads the Pagefind UI bundle that the integration emits
+ * into dist/pagefind during the build, so this page works without a server.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Search from 'astro-pagefind/components/Search';
+
+const description =
+  'Search every FinFacts species profile, lesson and pathway page.';
+---
+
+<BaseLayout title="Search" description={description} canonical="/search/">
+  <h1>Search</h1>
+  <p class="lede">
+    Search species profiles, lessons and pathway guides. The index is built at
+    deploy time, so results are instant and fully offline-capable.
+  </p>
+  <Search id="search" className="pagefind-ui" uiOptions={{ showImages: false }} />
+</BaseLayout>

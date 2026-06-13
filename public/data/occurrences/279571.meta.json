@@ -1,0 +1,16 @@
+{
+  "aphiaId": 279571,
+  "scientificName": "Heterodontus portusjacksoni",
+  "gbifTaxonKey": 5215675,
+  "counts": {
+    "gbif": 5000,
+    "obis": 3,
+    "total": 5003
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:13:53.698Z"
+}

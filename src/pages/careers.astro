@@ -1,0 +1,42 @@
+---
+/**
+ * Careers — renders the careers lesson then the CitizenScienceHub island so
+ * readers can act immediately. CitizenScienceHub falls back to sample programs
+ * when no data is supplied, and hydrates at visible.
+ */
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Citations from '../components/Citations.astro';
+import CitizenScienceHub from '../components/CitizenScienceHub';
+
+const lesson = await getEntry('lessons', 'careers');
+
+let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+let citationIds: string[] = [];
+if (lesson) {
+  Content = (await render(lesson)).Content;
+  citationIds = lesson.data.citations.map((ref) => ref.id);
+}
+
+const description =
+  'Careers and ways to contribute to shark science — research, conservation, ' +
+  'media and citizen-science programs you can join today.';
+---
+
+<BaseLayout title="Careers & contributing" description={description} canonical="/careers/">
+  <h1>Careers &amp; contributing</h1>
+  {
+    Content && (
+      <div class="prose">
+        <Content />
+      </div>
+    )
+  }
+
+  <section class="careers-tool" aria-labelledby="citizen-science-heading">
+    <h2 id="citizen-science-heading">Citizen science</h2>
+    <CitizenScienceHub client:visible />
+  </section>
+
+  {citationIds.length > 0 && <Citations ids={citationIds} />}
+</BaseLayout>

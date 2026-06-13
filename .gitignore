@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Astro generated types and cache
+.astro/
+
+# Pagefind build artifacts (regenerated on build)
+**/pagefind/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db

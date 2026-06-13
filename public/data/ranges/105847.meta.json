@@ -1,0 +1,10 @@
+{
+  "aphiaId": 105847,
+  "scientificName": "Rhincodon typus",
+  "assessment": {
+    "category": "EN",
+    "source": "obis-redlist"
+  },
+  "hasRangePolygon": false,
+  "retrievedAt": "2026-06-13T22:14:54.430Z"
+}

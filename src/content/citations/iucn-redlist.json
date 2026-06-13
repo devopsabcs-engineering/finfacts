@@ -1,0 +1,9 @@
+{
+  "type": "database",
+  "authors": ["IUCN"],
+  "year": 2025,
+  "title": "The IUCN Red List of Threatened Species",
+  "url": "https://www.iucnredlist.org",
+  "accessedDate": "2026-06-13",
+  "note": "Global conservation assessments. Category labels reflect the most recent published global assessment for each species."
+}

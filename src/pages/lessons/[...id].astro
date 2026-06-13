@@ -1,0 +1,80 @@
+---
+/**
+ * Lesson detail route — one page per non-draft lesson. Renders the MDX body in
+ * the editorial prose container with provenance and a sourced reference list.
+ * Lessons are non-interactive by default, so no island is shipped here.
+ */
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Citations from '../../components/Citations.astro';
+import { buildLearningResource } from '../../lib/schema-org';
+
+export const getStaticPaths = (async () => {
+  const lessons = await getCollection('lessons', (e) => !e.data.draft);
+  return lessons.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const data = entry.data;
+
+const href = `/lessons/${entry.id}/`;
+const canonicalUrl = new URL(href, Astro.site).href;
+const description = data.description ?? data.summary;
+
+const citationIds = data.citations.map((ref) => ref.id);
+
+const reviewerNames = data.reviewedBy
+  .map((r) => (r.credentials ? `${r.name}, ${r.credentials}` : r.name))
+  .join('; ');
+
+const fmtDate = (value?: Date | string): string | undefined => {
+  if (!value) return undefined;
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString().slice(0, 10);
+};
+const lastReviewed = fmtDate(data.lastReviewed);
+const lastUpdated = fmtDate(data.lastUpdated ?? data.created);
+
+const jsonLd = buildLearningResource({
+  name: data.title,
+  url: canonicalUrl,
+  description,
+  educationalLevel: data.level,
+  inLanguage: 'en',
+  keywords: ['sharks', 'education', data.pathway],
+});
+---
+
+<BaseLayout title={data.title} description={description} canonical={href} jsonLd={jsonLd}>
+  <article class="lesson">
+    <header class="lesson__header">
+      <h1 class="lesson__title">{data.title}</h1>
+      {data.summary && <p class="lede">{data.summary}</p>}
+      {
+        (reviewerNames || lastReviewed || lastUpdated) && (
+          <p class="provenance" role="contentinfo">
+            {reviewerNames && lastReviewed && (
+              <span class="provenance__line">
+                Reviewed by <span class="provenance__label">{reviewerNames}</span> on{' '}
+                <time datetime={lastReviewed}>{lastReviewed}</time>.{' '}
+              </span>
+            )}
+            {lastUpdated && (
+              <span class="provenance__muted">
+                Last updated <time datetime={lastUpdated}>{lastUpdated}</time>.
+              </span>
+            )}
+          </p>
+        )
+      }
+    </header>
+
+    <div class="prose lesson__body">
+      <Content />
+    </div>
+
+    <Citations ids={citationIds} />
+  </article>
+</BaseLayout>

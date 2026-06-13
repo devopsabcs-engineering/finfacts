@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105928,
+  "scientificName": "Squatina squatina",
+  "gbifTaxonKey": 2417781,
+  "counts": {
+    "gbif": 1121,
+    "obis": 542,
+    "total": 1663
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:15:09.251Z"
+}

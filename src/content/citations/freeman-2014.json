@@ -1,0 +1,22 @@
+{
+  "type": "article",
+  "authors": [
+    "Freeman S",
+    "Eddy SL",
+    "McDonough M",
+    "Smith MK",
+    "Okoroafor N",
+    "Jordt H",
+    "Wenderoth MP"
+  ],
+  "year": 2014,
+  "title": "Active learning increases student performance in science, engineering, and mathematics",
+  "container": "Proceedings of the National Academy of Sciences",
+  "volume": "111",
+  "issue": "23",
+  "pages": "8410-8415",
+  "doi": "10.1073/pnas.1319030111",
+  "url": "https://www.pnas.org/doi/10.1073/pnas.1319030111",
+  "accessedDate": "2026-06-13",
+  "note": "Evidence base for the interactive, low-stakes retrieval prompts used in FinFacts lessons."
+}

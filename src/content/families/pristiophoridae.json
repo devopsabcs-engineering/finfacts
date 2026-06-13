@@ -1,0 +1,20 @@
+{
+  "scientificName": "Pristiophoridae",
+  "commonName": "Sawsharks",
+  "authorship": "Bleeker, 1859",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Pristiophoriformes",
+  "description": {
+    "text": "Sawsharks bear a long, blade-like snout (rostrum) studded with teeth and a pair of barbels used to detect prey in the sediment. They are distinct from the sawfishes (which are rays): sawsharks have gill slits on the sides of the head and barbels on the rostrum, whereas sawfishes have ventral gill slits and no barbels.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 10,
+    "unit": "species",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "emerging"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

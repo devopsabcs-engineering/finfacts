@@ -1,0 +1,140 @@
+---
+/**
+ * Species detail route — one page per non-draft species.
+ *
+ * Renders the MDX body inside SpeciesLayout (masthead, provenance, citations)
+ * and hydrates the interactive islands with plain serialisable props projected
+ * by lib/species-view.ts. Hydration strategy follows the project's performance
+ * budget: the WebGL map is client:only, below-fold visuals are client:visible,
+ * and the planners are client:idle.
+ */
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import SpeciesLayout from '../../layouts/SpeciesLayout.astro';
+import DistributionMap from '../../components/DistributionMap';
+import MapDataTable from '../../components/MapDataTable';
+import SizeComparison from '../../components/SizeComparison';
+import DepthZones from '../../components/DepthZones';
+import DivePlanner from '../../components/DivePlanner';
+import ShootPlanner from '../../components/ShootPlanner';
+import {
+  speciesHref,
+  preferredCommonName,
+  toSizeItem,
+  toDepthItem,
+  toDiveSpecies,
+  toShootSpecies,
+} from '../../lib/species-view';
+import { buildLearningResource } from '../../lib/schema-org';
+import type { IucnCategory } from '../../components/types';
+
+export const getStaticPaths = (async () => {
+  const species = await getCollection('species', (e) => !e.data.draft);
+  return species.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const data = entry.data;
+const commonName = preferredCommonName(entry);
+const scientificName = data.identity.scientificName;
+const href = speciesHref(entry.id);
+const canonicalUrl = new URL(href, Astro.site).href;
+const iucnCategory = data.conservation.iucn.category as IucnCategory;
+
+const dietSummary = data.biology?.diet?.summary?.text;
+const description = dietSummary
+  ? dietSummary.slice(0, 155)
+  : `${commonName} (${scientificName}) — distribution, biology, conservation status and field guidance.`;
+
+const speciesKey = data.externalIds.wormsAphiaId;
+
+const sizeItem = toSizeItem(entry);
+const depthItem = toDepthItem(entry);
+const diveSpecies = toDiveSpecies(entry);
+const shootSpecies = toShootSpecies(entry);
+
+const citationIds = data.citations.map((ref) => ref.id);
+
+const jsonLd = buildLearningResource({
+  name: `${commonName} (${scientificName})`,
+  url: canonicalUrl,
+  description,
+  educationalAudience: 'undergraduate and high-school marine biology',
+  keywords: ['sharks', data.taxonomy.order, data.taxonomy.family, scientificName],
+  inLanguage: 'en',
+});
+---
+
+<SpeciesLayout
+  title={commonName}
+  description={description}
+  canonical={href}
+  jsonLd={jsonLd}
+  scientificName={scientificName}
+  commonName={commonName}
+  iucnCategory={iucnCategory}
+  reviewedBy={data.record.reviewedBy}
+  lastReviewed={data.record.lastReviewed}
+  lastUpdated={data.record.lastUpdated}
+  citationIds={citationIds}
+>
+  <section class="species-section" aria-labelledby="distribution-heading">
+    <h2 id="distribution-heading">Distribution</h2>
+    <DistributionMap
+      client:only="preact"
+      speciesKey={speciesKey}
+      scientificName={scientificName}
+      commonName={commonName}
+      height={420}
+    />
+    <MapDataTable
+      client:visible
+      speciesKey={speciesKey}
+      scientificName={scientificName}
+      commonName={commonName}
+      iucnCategory={iucnCategory}
+    />
+  </section>
+
+  {
+    sizeItem && (
+      <section class="species-section" aria-labelledby="size-heading">
+        <h2 id="size-heading">Size</h2>
+        <SizeComparison client:visible species={[sizeItem]} />
+      </section>
+    )
+  }
+
+  {
+    depthItem && (
+      <section class="species-section" aria-labelledby="depth-heading">
+        <h2 id="depth-heading">Depth range</h2>
+        <DepthZones client:visible species={[depthItem]} />
+      </section>
+    )
+  }
+
+  <div class="prose species-prose">
+    <Content />
+  </div>
+
+  {
+    diveSpecies && (
+      <section class="species-section" aria-labelledby="dive-heading">
+        <h2 id="dive-heading">Dive planning</h2>
+        <DivePlanner client:idle species={[diveSpecies]} />
+      </section>
+    )
+  }
+
+  {
+    shootSpecies && (
+      <section class="species-section" aria-labelledby="shoot-heading">
+        <h2 id="shoot-heading">Filming planning</h2>
+        <ShootPlanner client:idle species={[shootSpecies]} />
+      </section>
+    )
+  }
+</SpeciesLayout>

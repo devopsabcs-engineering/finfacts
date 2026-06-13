@@ -1,0 +1,10 @@
+{
+  "type": "database",
+  "authors": ["Florida Museum of Natural History"],
+  "year": 2025,
+  "title": "International Shark Attack File (ISAF)",
+  "publisher": "University of Florida",
+  "url": "https://www.floridamuseum.ufl.edu/shark-attacks/",
+  "accessedDate": "2026-06-13",
+  "note": "Scientifically documented record of shark-human interactions, used here to provide evidence-based risk context."
+}

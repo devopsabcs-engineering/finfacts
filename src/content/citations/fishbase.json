@@ -1,0 +1,9 @@
+{
+  "type": "database",
+  "authors": ["Froese R", "Pauly D"],
+  "year": 2024,
+  "title": "FishBase",
+  "url": "https://www.fishbase.se",
+  "accessedDate": "2026-06-13",
+  "note": "World Wide Web electronic publication. Source for size maxima, depth ranges, and biological summaries."
+}

@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105847,
+  "scientificName": "Rhincodon typus",
+  "gbifTaxonKey": 2417522,
+  "counts": {
+    "gbif": 5000,
+    "obis": 5000,
+    "total": 10000
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:14:54.299Z"
+}

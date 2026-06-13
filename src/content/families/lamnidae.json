@@ -1,0 +1,20 @@
+{
+  "scientificName": "Lamnidae",
+  "commonName": "Mackerel sharks",
+  "authorship": "Müller & Henle, 1838",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Lamniformes",
+  "description": {
+    "text": "The mackerel sharks are fast, powerful, large-bodied predators. Members of this family are regionally endothermic, retaining metabolic heat in the swimming muscles, eyes, and viscera \u2014 an adaptation that supports high cruising speeds and use of cold, productive waters. The family includes the white shark, the makos, and the porbeagle/salmon sharks.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 5,
+    "unit": "species",
+    "sources": ["compagno-1984", "worms"],
+    "confidence": "well-established"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

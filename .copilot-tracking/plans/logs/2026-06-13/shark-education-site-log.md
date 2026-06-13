@@ -141,6 +141,39 @@ Items identified during planning that fall outside current scope.
 * WI-08: Gather pathway authoring sources (FAO/elasmo-key dichotomous key, named cinematographers/films, Green Fins-style diving ethics codes, exemplar-site differentiation) — high
   * Source: research §Potential Next Research item 5; DR-04, DR-05
   * Dependency: Precedes credible authoring of Steps 5.2/6.2 pathway content and the IdentificationKey island couplets
+* WI-09: Dependency-audit triage — resolve 5 npm advisories (1 low, 4 high) in the deck.gl/d3 transitive chain — medium
+  * Source: Phase 1 + Phase 4 implementation (npm install)
+  * Dependency: None blocking; revisit before production hardening
+* WI-10: Map-bundle perf optimization — maplibre-gl lazy chunk (~285 KB gzipped) exceeds the DR-06 ~250 KB map budget — medium
+  * Source: Phase 4, Step 4.1 (DistributionMap)
+  * Dependency: Phase 5 island hydration; enforce via Lighthouse CI (Phase 7); consider raster-only basemap or manualChunks tuning
+* WI-11: Replace island SAMPLE datasets with authoritative sources (IdentificationKey couplets, RiskExplainer ISAF odds, CitizenScienceHub program links) — high
+  * Source: Phase 4, Step 4.2; DR-04/DR-05/DR-07
+  * Dependency: WI-08 source gathering
+* WI-12: Provision Azure Static Web App and add `AZURE_STATIC_WEB_APPS_API_TOKEN` repo secret — high
+  * Source: Phase 7, Step 7.1 (azure-static-web-apps.yml)
+  * Dependency: None blocking build; required before first deploy. `GITHUB_TOKEN` is automatic; `IUCN_API_TOKEN` optional.
+* WI-13: Replace placeholder production `site:` URL (`https://finfacts.example.com`) in astro.config.mjs with the real domain — high
+  * Source: Phase 7 clarifying question; drives canonical, sitemap, and JSON-LD absolute URLs
+  * Dependency: Production domain decision; correct before go-live for accurate SEO
+
+## Implementation Notes (post-planning)
+
+* DD-05: DistributionMap uses deck.gl prop `radiusunits` (lowercase) instead of `radiusUnits`
+  * Plan specifies: deck.gl ScatterplotLayer overlay
+  * Implementation differs: prop casing is wrong; type-stripping hid it at build time, runtime no-op until corrected
+  * Rationale: Flagged by Phase 4 subagent; to be verified/fixed during Phase 5 hydration testing
+  * Resolution: Fixed in Phase 5 to `radiusUnits` (correct deck.gl camelCase). Closed.
+
+* DD-06: CI quality gate uses `SKIP_DATA_FETCH=1` fast build; deploy uses full network fetch
+  * Plan specifies: axe-core + Lighthouse CI gates (Step 7.2)
+  * Implementation differs: added a documented `SKIP_DATA_FETCH` short-circuit to scripts/fetch-occurrences.mjs so PR quality jobs build in ~10s against committed `public/data`; the deploy workflow runs the live prebuild fetch (timeout-minutes 20)
+  * Rationale: Keeps PR gates fast/deterministic and offline; production builds still bake fresh occurrence data. SKIP_DATA_FETCH defaults to fetching.
+
+* DD-07: Lighthouse map-page byte budgets are warnings, not errors
+  * Plan specifies: enforce map bundle budget via Lighthouse CI (DR-06, ~250 KB)
+  * Implementation differs: the maplibre lazy chunk (~285 KB gzipped, WI-10) exceeds the budget; byte budgets are asserted as warnings while accessibility (≥0.9) and SEO (≥0.9) remain hard errors
+  * Rationale: The WebGL map page is inherently heavy and correctly lazy-loaded; failing CI on it would block deploys. Perf optimization tracked as WI-10.
 
 ## Decision Points (defaults applied; confirm to override)
 

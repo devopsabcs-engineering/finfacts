@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105833,
+  "scientificName": "Hexanchus griseus",
+  "gbifTaxonKey": 2420569,
+  "counts": {
+    "gbif": 5000,
+    "obis": 1562,
+    "total": 6562
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:14:09.863Z"
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "trailingSlash": "always",
+  "mimeTypes": {
+    ".geojson": "application/geo+json",
+    ".mvt": "application/vnd.mapbox-vector-tile",
+    ".pmtiles": "application/octet-stream",
+    ".webmanifest": "application/manifest+json",
+    ".avif": "image/avif"
+  },
+  "routes": [
+    {
+      "route": "/data/*",
+      "headers": {
+        "cache-control": "public, max-age=86400, must-revalidate"
+      }
+    },
+    {
+      "route": "/_astro/*",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/pagefind/*",
+      "headers": {
+        "cache-control": "public, max-age=86400"
+      }
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/404.html",
+    "exclude": ["/_astro/*", "/data/*", "/pagefind/*", "/*.{css,js,mjs,json,geojson,xml,txt,png,jpg,jpeg,webp,avif,svg,ico,woff2}"]
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html"
+    }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    "Content-Security-Policy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; img-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' https: data: blob:; manifest-src 'self'"
+  }
+}

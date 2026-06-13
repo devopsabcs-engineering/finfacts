@@ -1,0 +1,92 @@
+# Azure Static Web Apps CI/CD for FinFacts (shark education site).
+#
+# Deploys the Astro static build to Azure Static Web Apps (Free tier) and
+# creates an ephemeral preview environment for every pull request, cleaned up
+# automatically when the PR closes.
+#
+# REQUIRED GITHUB SECRETS
+#   AZURE_STATIC_WEB_APPS_API_TOKEN  Deployment token for the SWA resource.
+#                                    Get it from: Azure Portal > the Static Web
+#                                    App > "Manage deployment token", then add it
+#                                    under repo Settings > Secrets and variables >
+#                                    Actions. Never hardcode this value.
+#   GITHUB_TOKEN                     Provided automatically by Actions; used by the
+#                                    SWA action to post the PR preview URL comment.
+#
+# OPTIONAL SECRETS (forwarded to the build so prebuild can bake richer data)
+#   IUCN_API_TOKEN                   IUCN Red List v4 bearer token (non-commercial).
+#
+# NOTE ON THE SLOW PREBUILD
+#   `npm run build` runs scripts/fetch-occurrences.mjs (GBIF + OBIS occurrence
+#   fetch, ~2-3 min). That script is offline/failure-tolerant by design (it logs
+#   warnings and never throws), so the build still succeeds in CI even if an API
+#   is unreachable. We build ourselves and deploy with skip_app_build so Oryx
+#   does not re-run a build we already control.
+
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_deploy:
+    # Skip on PR "closed" events — that path is handled by close_pull_request.
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        # astro build → prebuild data fetch + Pagefind index + sitemap + images.
+        run: npm run build
+        env:
+          # Forwarded if configured; safe to be empty (script falls back to OBIS).
+          IUCN_API_TOKEN: ${{ secrets.IUCN_API_TOKEN }}
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          output_location: "dist"
+          # We already ran `npm run build`; do not let Oryx rebuild and re-run the
+          # slow network-bound prebuild a second time.
+          skip_app_build: true
+
+  close_pull_request:
+    # Tear down the preview environment when a PR is closed (merged or not).
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    name: Close Pull Request Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Close preview environment
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "close"

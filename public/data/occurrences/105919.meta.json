@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105919,
+  "scientificName": "Somniosus microcephalus",
+  "gbifTaxonKey": 2421162,
+  "counts": {
+    "gbif": 775,
+    "obis": 864,
+    "total": 1639
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:15:01.741Z"
+}

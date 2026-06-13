@@ -1,0 +1,20 @@
+{
+  "scientificName": "Rhincodontidae",
+  "commonName": "Whale shark",
+  "authorship": "Müller & Henle, 1839",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Orectolobiformes",
+  "description": {
+    "text": "A monotypic family containing only the whale shark, the largest living fish. Despite its size it is a filter feeder, straining plankton and small nekton from the water column. The whale shark is highly migratory and forms predictable seasonal aggregations at productive sites worldwide.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 1,
+    "unit": "species",
+    "sources": ["worms"],
+    "confidence": "well-established"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

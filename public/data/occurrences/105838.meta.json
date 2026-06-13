@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105838,
+  "scientificName": "Carcharodon carcharias",
+  "gbifTaxonKey": 2420694,
+  "counts": {
+    "gbif": 5000,
+    "obis": 5000,
+    "total": 10000
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:13:14.595Z"
+}

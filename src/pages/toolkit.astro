@@ -1,0 +1,87 @@
+---
+/**
+ * Toolkit — the high-school/general learner hub. Bundles the glossary, an
+ * identification key, a conservation-status chart, and a retrieval-practice
+ * quiz. Visual islands hydrate at visible since they sit below the fold.
+ */
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import IdentificationKey from '../components/IdentificationKey';
+import ConservationChart from '../components/ConservationChart';
+import Quiz from '../components/Quiz';
+import type { QuizQuestion } from '../components/Quiz';
+import { toSummary } from '../lib/species-view';
+
+const glossary = await getEntry('lessons', 'glossary');
+const species = (await getCollection('species', (e) => !e.data.draft)).map(
+  toSummary,
+);
+
+let GlossaryContent: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+if (glossary) {
+  GlossaryContent = (await render(glossary)).Content;
+}
+
+const quizQuestions: QuizQuestion[] = [
+  {
+    id: 'risk-perspective',
+    prompt: 'Roughly how many people die from unprovoked shark bites worldwide each year?',
+    choices: ['About 5–10', 'About 500', 'About 5,000', 'About 50,000'],
+    answerIndex: 0,
+    explanation:
+      'Unprovoked fatal bites average single digits to ~10 per year globally — far fewer than deaths from many everyday activities.',
+  },
+  {
+    id: 'threat-share',
+    prompt: 'Approximately what share of shark and ray species are threatened with extinction?',
+    choices: ['About 1 in 50', 'About 1 in 10', 'About 1 in 3', 'None'],
+    answerIndex: 2,
+    explanation:
+      'Around a third of chondrichthyan species are assessed as threatened (Dulvy et al., 2021), largely due to overfishing.',
+  },
+  {
+    id: 'class',
+    prompt: 'Sharks belong to which class of fishes?',
+    choices: ['Osteichthyes (bony fishes)', 'Chondrichthyes (cartilaginous fishes)', 'Agnatha (jawless fishes)', 'Sarcopterygii'],
+    answerIndex: 1,
+    explanation:
+      'Sharks, rays and chimaeras are cartilaginous fishes — class Chondrichthyes — with skeletons of cartilage rather than bone.',
+  },
+];
+
+const description =
+  'A learner toolkit for sharks: glossary, identification key, conservation ' +
+  'status chart and a spaced-repetition quiz.';
+---
+
+<BaseLayout title="Learning toolkit" description={description} canonical="/toolkit/">
+  <h1>Learning toolkit</h1>
+  <p class="lede">
+    Everything in one place: look up terms, key out a shark, see how species are
+    faring, and test yourself.
+  </p>
+
+  <section class="toolkit-section" aria-labelledby="idkey-heading">
+    <h2 id="idkey-heading">Identification key</h2>
+    <IdentificationKey client:visible />
+  </section>
+
+  <section class="toolkit-section" aria-labelledby="status-heading">
+    <h2 id="status-heading">Conservation status</h2>
+    <ConservationChart client:visible species={species} />
+  </section>
+
+  <section class="toolkit-section" aria-labelledby="quiz-heading">
+    <h2 id="quiz-heading">Test yourself</h2>
+    <Quiz client:visible questions={quizQuestions} storageKey="finfacts-toolkit-quiz" />
+  </section>
+
+  {
+    GlossaryContent && (
+      <section class="toolkit-section prose" aria-labelledby="glossary-heading">
+        <h2 id="glossary-heading">Glossary</h2>
+        <GlossaryContent />
+      </section>
+    )
+  }
+</BaseLayout>

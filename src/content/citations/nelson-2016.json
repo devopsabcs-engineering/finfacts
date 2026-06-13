@@ -1,0 +1,9 @@
+{
+  "type": "book",
+  "authors": ["Nelson JS", "Grande TC", "Wilson MVH"],
+  "year": 2016,
+  "title": "Fishes of the World",
+  "edition": "5th ed.",
+  "publisher": "John Wiley & Sons",
+  "note": "Standard reference for higher classification of fishes. ISBN 978-1-118-34233-6."
+}

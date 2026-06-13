@@ -1,0 +1,45 @@
+---
+/**
+ * Scuba pathway — renders the pathway-scuba lesson then the DivePlanner island
+ * seeded with every species that has diving guidance (nulls dropped by
+ * `compact`). DivePlanner hydrates at idle since it sits below the editorial fold.
+ */
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Citations from '../../components/Citations.astro';
+import DivePlanner from '../../components/DivePlanner';
+import { compact, toDiveSpecies } from '../../lib/species-view';
+
+const lesson = await getEntry('lessons', 'pathway-scuba');
+const species = await getCollection('species', (e) => !e.data.draft);
+const diveSpecies = compact(species.map(toDiveSpecies));
+
+let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+let citationIds: string[] = [];
+if (lesson) {
+  Content = (await render(lesson)).Content;
+  citationIds = lesson.data.citations.map((ref) => ref.id);
+}
+
+const description =
+  'How and where to encounter sharks as a scuba diver — sites, seasons, ' +
+  'certification levels and a practical dive planner.';
+---
+
+<BaseLayout title="Scuba pathway" description={description} canonical="/pathways/scuba/">
+  <h1>Scuba pathway</h1>
+  {
+    Content && (
+      <div class="prose">
+        <Content />
+      </div>
+    )
+  }
+
+  <section class="pathway-tool" aria-labelledby="dive-planner-heading">
+    <h2 id="dive-planner-heading">Plan a dive</h2>
+    <DivePlanner client:idle species={diveSpecies} />
+  </section>
+
+  {citationIds.length > 0 && <Citations ids={citationIds} />}
+</BaseLayout>

@@ -1,0 +1,20 @@
+{
+  "scientificName": "Somniosidae",
+  "commonName": "Sleeper sharks",
+  "authorship": "Jordan, 1888",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Squaliformes",
+  "description": {
+    "text": "The sleeper sharks are cold-water and deep-sea dogfishes, including the Greenland shark and the Pacific sleeper shark. They are slow-swimming, long-lived predators and scavengers adapted to dark, cold, high-pressure environments.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 17,
+    "unit": "species",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "emerging"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

@@ -1,0 +1,127 @@
+---
+/**
+ * Homepage — audience-routing hub plus the ISAF myth-busting hero.
+ *
+ * The audience cards are plain anchors (zero JS) that route undergrad,
+ * high-school, diver and filmmaker visitors to the right entry point. The
+ * RiskExplainer island carries the interactive "sharks vs. everyday risks"
+ * framing that anchors the site's conservation message.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import RiskExplainer from '../components/RiskExplainer';
+import { toSummary } from '../lib/species-view';
+import { buildWebSite } from '../lib/schema-org';
+import { IUCN_LABELS, IUCN_STYLE } from '../components/types';
+
+const species = (await getCollection('species', (e) => !e.data.draft))
+  .map(toSummary)
+  .sort((a, b) => a.scientificName.localeCompare(b.scientificName));
+
+const audiences = [
+  {
+    title: 'Undergraduate',
+    blurb: 'Taxonomy, physiology and conservation with full source attribution.',
+    href: '/lessons/',
+    cta: 'Start the lessons',
+  },
+  {
+    title: 'High school',
+    blurb: 'Approachable explainers, quizzes and an identification key.',
+    href: '/toolkit/',
+    cta: 'Open the toolkit',
+  },
+  {
+    title: 'Scuba diver',
+    blurb: 'Where and how to encounter sharks safely and ethically.',
+    href: '/pathways/scuba/',
+    cta: 'Plan a dive',
+  },
+  {
+    title: 'Filmmaker',
+    blurb: 'Gear, light budgets and an ethics checklist for shark footage.',
+    href: '/pathways/filming/',
+    cta: 'Plan a shoot',
+  },
+];
+
+const description =
+  'Evidence-based shark education: distribution maps, conservation status, ' +
+  'biology and field guidance — every fact sourced and dated.';
+
+const jsonLd = buildWebSite({
+  name: 'FinFacts',
+  url: new URL('/', Astro.site).href,
+  description,
+  inLanguage: 'en',
+});
+---
+
+<BaseLayout title="Home" fullTitle="FinFacts — Evidence-based shark education" description={description} jsonLd={jsonLd}>
+  <section class="hero">
+    <p class="hero__eyebrow">Myth-busting, source-first</p>
+    <h1 class="hero__title">Sharks are not what the headlines say.</h1>
+    <p class="hero__lede">
+      Unprovoked shark bites are vanishingly rare, yet a third of shark and ray
+      species are threatened with extinction. FinFacts replaces fear with
+      evidence — mapped, cited and reviewed.
+    </p>
+    <p class="hero__actions">
+      <a class="button button--primary" href="/explore/">Explore species</a>
+      <a class="button" href="/map/">Open the distribution map</a>
+    </p>
+  </section>
+
+  <section class="audience" aria-labelledby="audience-heading">
+    <h2 id="audience-heading">Choose your path</h2>
+    <ul class="audience__grid card-grid">
+      {
+        audiences.map((a) => (
+          <li class="card audience__card">
+            <h3 class="card__title">{a.title}</h3>
+            <p class="card__body">{a.blurb}</p>
+            <a class="button button--ghost" href={a.href}>
+              {a.cta}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="risk" aria-labelledby="risk-heading">
+    <h2 id="risk-heading">Put the risk in perspective</h2>
+    <RiskExplainer client:visible />
+  </section>
+
+  <section class="featured" aria-labelledby="featured-heading">
+    <h2 id="featured-heading">Featured species</h2>
+    <ul class="card-grid">
+      {
+        species.map((s) => {
+          const style = IUCN_STYLE[s.iucnCategory];
+          return (
+            <li class="card species-card">
+              <h3 class="card__title">
+                <a href={s.href}>{s.commonName ?? s.scientificName}</a>
+              </h3>
+              <p class="card__sci"><em>{s.scientificName}</em></p>
+              <p class="card__meta">
+                <span
+                  class="badge badge--iucn"
+                  style={`--badge-color:${style.color}`}
+                >
+                  <span aria-hidden="true">{style.symbol}</span> IUCN{' '}
+                  {s.iucnCategory}
+                </span>
+                <span class="visually-hidden">
+                  {IUCN_LABELS[s.iucnCategory]}
+                </span>
+              </p>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+</BaseLayout>

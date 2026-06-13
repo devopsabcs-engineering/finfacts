@@ -1,0 +1,10 @@
+{
+  "type": "database",
+  "authors": ["UNEP-WCMC"],
+  "year": 2025,
+  "title": "Species+ (CITES Checklist)",
+  "publisher": "UNEP-WCMC, Cambridge",
+  "url": "https://www.speciesplus.net",
+  "accessedDate": "2026-06-13",
+  "note": "Source for CITES Appendix listings for chondrichthyans."
+}

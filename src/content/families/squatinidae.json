@@ -1,0 +1,20 @@
+{
+  "scientificName": "Squatinidae",
+  "commonName": "Angel sharks",
+  "authorship": "Bonaparte, 1838",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Squatiniformes",
+  "description": {
+    "text": "Angel sharks are dorsoventrally flattened, ray-like ambush predators that lie buried in sediment and strike upward at passing prey. Their flattened body has led to frequent confusion with rays, but they remain true sharks. Many species are highly threatened by demersal fisheries.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 24,
+    "unit": "species",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "emerging"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

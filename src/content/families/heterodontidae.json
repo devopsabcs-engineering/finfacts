@@ -1,0 +1,20 @@
+{
+  "scientificName": "Heterodontidae",
+  "commonName": "Bullhead and horn sharks",
+  "authorship": "Gray, 1851",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Heterodontiformes",
+  "description": {
+    "text": "The bullhead sharks are small, blunt-headed, bottom-dwelling sharks with a prominent ridge over each eye and a stout dorsal-fin spine. They possess heterodont dentition \u2014 pointed grasping teeth at the front and broad crushing molars at the rear \u2014 specialised for hard-shelled invertebrate prey. They lay distinctive spiral or auger-shaped egg cases.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 9,
+    "unit": "species",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "emerging"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

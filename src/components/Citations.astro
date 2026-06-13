@@ -1,0 +1,68 @@
+---
+/**
+ * Citations — renders a sourced reference list from an ordered list of citation
+ * ids. Resolves the ids against the `citations` content collection, then formats
+ * each entry with the shared CSE/APA formatter (lib/citations.ts).
+ *
+ * Used by SpeciesLayout and the lesson route so every fact-bearing page ships a
+ * dated, attributable bibliography (project rigour requirement).
+ */
+import { getCollection } from 'astro:content';
+import {
+  resolveCitations,
+  formatReference,
+  doiUrl,
+  type CitationData,
+  type CitationStyle,
+} from '../lib/citations';
+
+interface Props {
+  /** Ordered citation ids (slugs of files in src/content/citations). */
+  ids: string[];
+  style?: CitationStyle;
+  heading?: string;
+  /** Heading level so the list nests correctly in the document outline. */
+  headingLevel?: 2 | 3;
+}
+
+const { ids, style = 'cse', heading = 'References', headingLevel = 2 } =
+  Astro.props;
+
+const all = await getCollection('citations');
+const map = new Map<string, CitationData>(
+  all.map((c) => [c.id, { id: c.id, ...c.data } as CitationData]),
+);
+const resolved = resolveCitations(ids, map);
+const HeadingTag = `h${headingLevel}` as 'h2' | 'h3';
+---
+
+{
+  resolved.length > 0 && (
+    <section class="citations" aria-labelledby="citations-heading">
+      <HeadingTag id="citations-heading" class="citations__heading">
+        {heading}
+      </HeadingTag>
+      <ol class="citations__list">
+        {resolved.map((c) => {
+          const link = doiUrl(c.doi) ?? c.url ?? undefined;
+          return (
+            <li id={c.id ? `ref-${c.id}` : undefined} class="citations__item">
+              <span>{formatReference(c, style)}</span>
+              {link && (
+                <>
+                  {' '}
+                  <a href={link} rel="noopener noreferrer">
+                    <span class="visually-hidden">
+                      Open reference{c.title ? `: ${c.title}` : ''}
+                    </span>
+                    <span aria-hidden="true">[link]</span>
+                  </a>
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  )
+}

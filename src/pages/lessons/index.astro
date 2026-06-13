@@ -1,0 +1,65 @@
+---
+/**
+ * Lessons index — lists every non-draft lesson, ordered by the `order` field
+ * then title, and grouped by learning pathway for scannability.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const lessons = (await getCollection('lessons', (e) => !e.data.draft)).sort(
+  (a, b) => (a.data.order ?? 999) - (b.data.order ?? 999) ||
+    a.data.title.localeCompare(b.data.title),
+);
+
+const pathwayLabels: Record<string, string> = {
+  learn: 'Core curriculum',
+  scuba: 'Scuba pathway',
+  filming: 'Filming pathway',
+};
+
+const groups = new Map<string, typeof lessons>();
+for (const lesson of lessons) {
+  const key = lesson.data.pathway ?? 'learn';
+  const bucket = groups.get(key) ?? [];
+  bucket.push(lesson);
+  groups.set(key, bucket);
+}
+const orderedKeys = ['learn', 'scuba', 'filming'].filter((k) => groups.has(k));
+
+const description =
+  'A sequenced shark-biology curriculum: taxonomy, ecology, conservation and ' +
+  'career pathways — each lesson sourced and dated.';
+---
+
+<BaseLayout title="Lessons" description={description} canonical="/lessons/">
+  <h1>Lessons</h1>
+  <p class="lede">
+    Work through the core curriculum or jump to a pathway. Every lesson cites
+    its sources and shows when it was last reviewed.
+  </p>
+
+  {
+    orderedKeys.map((key) => (
+      <section class="lesson-group" aria-labelledby={`group-${key}`}>
+        <h2 id={`group-${key}`}>{pathwayLabels[key] ?? key}</h2>
+        <ul class="card-grid">
+          {groups.get(key)!.map((lesson) => (
+            <li class="card lesson-card">
+              <h3 class="card__title">
+                <a href={`/lessons/${lesson.id}/`}>{lesson.data.title}</a>
+              </h3>
+              {lesson.data.level && (
+                <p class="card__meta">
+                  <span class="badge">{lesson.data.level}</span>
+                </p>
+              )}
+              {lesson.data.description && (
+                <p class="card__body">{lesson.data.description}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>

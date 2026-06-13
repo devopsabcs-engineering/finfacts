@@ -1,0 +1,16 @@
+{
+  "aphiaId": 105799,
+  "scientificName": "Galeocerdo cuvier",
+  "gbifTaxonKey": 2418234,
+  "counts": {
+    "gbif": 5000,
+    "obis": 5000,
+    "total": 10000
+  },
+  "sources": [
+    "gbif",
+    "obis"
+  ],
+  "gbifDownloadDoi": null,
+  "retrievedAt": "2026-06-13T22:13:38.102Z"
+}

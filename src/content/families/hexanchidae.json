@@ -1,0 +1,20 @@
+{
+  "scientificName": "Hexanchidae",
+  "commonName": "Cow sharks",
+  "authorship": "Gray, 1851",
+  "class": "Chondrichthyes",
+  "subclass": "Elasmobranchii",
+  "order": "Hexanchiformes",
+  "description": {
+    "text": "The cow sharks retain six or seven gill slits \u2014 more than the five found in most modern sharks \u2014 and a single dorsal fin, features regarded as ancestral among living sharks. They are typically deep-dwelling, slow-moving predators and scavengers found across temperate and tropical seas.",
+    "sources": ["compagno-1984", "fishbase"],
+    "confidence": "well-established"
+  },
+  "speciesCount": {
+    "value": 4,
+    "unit": "species",
+    "sources": ["worms", "compagno-1984"],
+    "confidence": "emerging"
+  },
+  "sources": ["worms", "compagno-1984", "nelson-2016"]
+}

@@ -1,0 +1,123 @@
+---
+/**
+ * SpeciesLayout — wraps BaseLayout for species detail pages.
+ *
+ * Adds the species masthead (scientific + common name, IUCN status pill), the
+ * editorial provenance block ("Reviewed by … on …" plus a last-updated date),
+ * the body slot, and the sourced reference list. Provenance and dating satisfy
+ * the project's "every fact is sourced and dated" requirement.
+ */
+import BaseLayout from './BaseLayout.astro';
+import Citations from '../components/Citations.astro';
+import { IUCN_LABELS, IUCN_STYLE, type IucnCategory } from '../components/types';
+import type { JsonLd } from '../lib/schema-org';
+
+interface Reviewer {
+  name: string;
+  credentials?: string;
+  affiliation?: string;
+}
+
+export interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+  jsonLd?: JsonLd | JsonLd[];
+  scientificName: string;
+  commonName?: string;
+  iucnCategory?: IucnCategory;
+  reviewedBy?: Reviewer[];
+  lastReviewed?: Date | string;
+  lastUpdated?: Date | string;
+  citationIds?: string[];
+}
+
+const {
+  title,
+  description,
+  canonical,
+  jsonLd,
+  scientificName,
+  commonName,
+  iucnCategory,
+  reviewedBy = [],
+  lastReviewed,
+  lastUpdated,
+  citationIds = [],
+} = Astro.props;
+
+function fmtDate(value: Date | string | undefined): string | undefined {
+  if (!value) return undefined;
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().slice(0, 10);
+}
+
+const reviewedDate = fmtDate(lastReviewed);
+const updatedDate = fmtDate(lastUpdated);
+const iucnLabel = iucnCategory ? IUCN_LABELS[iucnCategory] : undefined;
+const iucnStyle = iucnCategory ? IUCN_STYLE[iucnCategory] : undefined;
+
+const reviewerNames = reviewedBy
+  .map((r) => (r.credentials ? `${r.name}, ${r.credentials}` : r.name))
+  .join('; ');
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  jsonLd={jsonLd}
+>
+  <article class="species">
+    <header class="species__masthead">
+      <p class="species__common">{commonName ?? title}</p>
+      <h1 class="species__scientific"><em>{scientificName}</em></h1>
+
+      {
+        iucnCategory && (
+          <p class="species__status">
+            <span
+              class="badge badge--iucn"
+              style={iucnStyle ? `--badge-color:${iucnStyle.color}` : undefined}
+            >
+              <span aria-hidden="true">{iucnStyle?.symbol}</span>
+              <span>IUCN {iucnCategory}</span>
+            </span>
+            {iucnLabel && <span class="species__status-label">{iucnLabel}</span>}
+          </p>
+        )
+      }
+
+      {
+        (reviewerNames || reviewedDate || updatedDate) && (
+          <div class="provenance" role="contentinfo" aria-label="Editorial provenance">
+            {reviewerNames && (
+              <p class="provenance__line">
+                <span class="provenance__label">Reviewed by</span>{' '}
+                {reviewerNames}
+                {reviewedDate && (
+                  <>
+                    {' '}on <time datetime={reviewedDate}>{reviewedDate}</time>
+                  </>
+                )}
+              </p>
+            )}
+            {updatedDate && (
+              <p class="provenance__line provenance__muted">
+                <span class="provenance__label">Last updated</span>{' '}
+                <time datetime={updatedDate}>{updatedDate}</time>
+              </p>
+            )}
+          </div>
+        )
+      }
+    </header>
+
+    <div class="species__body prose">
+      <slot />
+    </div>
+
+    <Citations ids={citationIds} />
+  </article>
+</BaseLayout>

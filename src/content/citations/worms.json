@@ -1,0 +1,11 @@
+{
+  "type": "database",
+  "authors": ["WoRMS Editorial Board"],
+  "year": 2026,
+  "title": "World Register of Marine Species (WoRMS)",
+  "publisher": "Flanders Marine Institute (VLIZ)",
+  "doi": "10.14284/170",
+  "url": "https://www.marinespecies.org",
+  "accessedDate": "2026-06-13",
+  "note": "Authoritative source for accepted scientific names, authorship, and family-level placement used throughout this site."
+}

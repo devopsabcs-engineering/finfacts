@@ -1,0 +1,144 @@
+---
+/**
+ * BaseLayout — the shared document shell for every FinFacts page.
+ *
+ * Responsibilities:
+ *  - <head> SEO meta (title, description, canonical, Open Graph, Twitter).
+ *  - Optional JSON-LD injection (schema.org) via the `jsonLd` prop.
+ *  - Accessible skip-link to #main and semantic landmarks
+ *    (<header><nav>, <main id="main">, <footer>) for WCAG 2.4.1 / 1.3.1.
+ *  - Global stylesheet + primary site navigation (information architecture).
+ *
+ * Pages render their content into the default slot; the optional `head` slot
+ * lets a page add extra <head> tags (e.g. Pagefind UI styles).
+ */
+import '../styles/global.css';
+import { serializeJsonLd, type JsonLd } from '../lib/schema-org';
+
+interface NavItem {
+  href: string;
+  label: string;
+}
+
+export interface Props {
+  title: string;
+  description?: string;
+  /** Path (or absolute URL) for the canonical link; defaults to the page URL. */
+  canonical?: string;
+  /** One or more schema.org nodes serialised into <script type="application/ld+json">. */
+  jsonLd?: JsonLd | JsonLd[];
+  /** Override the document <title>; defaults to "<title> — FinFacts". */
+  fullTitle?: string;
+}
+
+const {
+  title,
+  description = "FinFacts: a scientifically rigorous, accessible educational resource about the world's sharks.",
+  canonical,
+  jsonLd,
+  fullTitle,
+} = Astro.props;
+
+const docTitle = fullTitle ?? `${title} \u2014 FinFacts`;
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/og-default.png', Astro.site).href;
+
+const jsonLdNodes = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+
+const NAV: NavItem[] = [
+  { href: '/', label: 'Home' },
+  { href: '/explore/', label: 'Explore species' },
+  { href: '/map/', label: 'Distribution map' },
+  { href: '/lessons/', label: 'Lessons' },
+  { href: '/pathways/scuba/', label: 'Scuba' },
+  { href: '/pathways/filming/', label: 'Filming' },
+  { href: '/careers/', label: 'Careers' },
+  { href: '/toolkit/', label: 'Toolkit' },
+  { href: '/search/', label: 'Search' },
+];
+
+const here = Astro.url.pathname;
+function isCurrent(href: string): boolean {
+  if (href === '/') return here === '/';
+  return here === href || here.startsWith(href);
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{docTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FinFacts" />
+    <meta property="og:title" content={docTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={docTitle} />
+    <meta name="twitter:description" content={description} />
+
+    {
+      jsonLdNodes.map((node) => (
+        <script
+          type="application/ld+json"
+          set:html={serializeJsonLd(node)}
+        />
+      ))
+    }
+
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="site-brand" href="/">FinFacts</a>
+        <nav class="site-nav" aria-label="Primary">
+          <ul class="site-nav__list">
+            {
+              NAV.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={isCurrent(item.href) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="container site-main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          FinFacts is an educational project. Every species fact is sourced and
+          dated; see each page&rsquo;s references for the underlying authorities.
+        </p>
+        <p class="site-footer__muted">
+          Conservation status follows the IUCN Red List. Identification keys and
+          risk figures marked &ldquo;sample&rdquo; are placeholders pending
+          editorial review.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
