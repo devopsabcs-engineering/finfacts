@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/staticwebapp.config.json",
-  "trailingSlash": "always",
+  "trailingSlash": "auto",
   "mimeTypes": {
     ".geojson": "application/geo+json",
     ".mvt": "application/vnd.mapbox-vector-tile",

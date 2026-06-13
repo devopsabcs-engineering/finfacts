@@ -36,7 +36,16 @@
   --space-5: 2.5rem;
 
   --radius: 6px;
+  --radius-lg: 14px;
   --content-max: 72rem;
+
+  /* Ocean-themed accent gradient + elevation tokens (decorative only). */
+  --gradient-ocean: linear-gradient(135deg, #0b3d5c 0%, #0a5a82 55%, #1d7fa8 100%);
+  --gradient-surface: linear-gradient(180deg, #f6fafc 0%, #eef4f8 100%);
+  --shadow-sm: 0 1px 2px rgba(15, 27, 36, 0.06), 0 1px 3px rgba(15, 27, 36, 0.08);
+  --shadow-md: 0 4px 10px rgba(15, 27, 36, 0.08), 0 2px 4px rgba(15, 27, 36, 0.06);
+  --shadow-lg: 0 18px 40px rgba(11, 61, 92, 0.18);
+  --ring-soft: 0 0 0 1px var(--color-border);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +63,12 @@
     --color-accent-contrast: #06283a;
     --color-focus: #ffb454;
     --color-border: #2c4150;
+
+    --gradient-ocean: linear-gradient(135deg, #06283a 0%, #0a3a52 55%, #12576f 100%);
+    --gradient-surface: linear-gradient(180deg, #15242f 0%, #102029 100%);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -72,9 +87,11 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--color-text);
   background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -156,8 +173,13 @@ a:hover {
    ========================================================================== */
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(8px);
+  box-shadow: var(--shadow-sm);
 }
 
 .site-header__inner {
@@ -172,10 +194,22 @@ a:hover {
 }
 
 .site-brand {
-  font-weight: 700;
-  font-size: 1.125rem;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
   color: var(--color-text);
   text-decoration: none;
+}
+
+.site-brand::before {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-inline-end: 0.5em;
+  border-radius: 50%;
+  background: var(--gradient-ocean);
+  vertical-align: baseline;
 }
 
 .site-nav {
@@ -193,14 +227,22 @@ a:hover {
 
 .site-nav a {
   display: inline-block;
-  padding-block: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  color: var(--color-text);
   text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.site-nav a:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-link-hover);
 }
 
 .site-nav a[aria-current="page"] {
   font-weight: 700;
-  text-decoration: underline;
-  text-decoration-thickness: 0.12em;
+  color: var(--color-link);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
 .site-main {
@@ -257,31 +299,45 @@ a:hover {
    ========================================================================== */
 
 .button {
-  display: inline-block;
-  padding: var(--space-2) var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-accent);
-  border-radius: var(--radius);
+  border-radius: 999px;
   color: var(--color-accent);
   background: transparent;
   font: inherit;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease,
+    background-color 150ms ease, color 150ms ease;
 }
 
 .button:hover {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .button--primary {
-  background: var(--color-accent);
+  background: var(--gradient-ocean);
+  border-color: transparent;
   color: var(--color-accent-contrast);
+  box-shadow: var(--shadow-sm);
 }
 
 .button--primary:hover {
-  background: var(--color-link-hover);
-  border-color: var(--color-link-hover);
+  background: var(--gradient-ocean);
+  filter: brightness(1.08);
+  border-color: transparent;
 }
 
 .button--ghost {
@@ -306,10 +362,19 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 160ms ease, box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
 }
 
 .card__title {
@@ -350,17 +415,19 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 0.1rem var(--space-2);
+  padding: 0.15rem var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.4;
+  background: var(--color-surface);
 }
 
 .badge--iucn {
   border-color: var(--badge-color, var(--color-border));
   color: var(--badge-color, var(--color-text));
+  background: color-mix(in srgb, var(--badge-color, var(--color-border)) 12%, transparent);
 }
 
 /* ==========================================================================
@@ -368,7 +435,30 @@ a:hover {
    ========================================================================== */
 
 .hero {
+  position: relative;
   margin-block-end: var(--space-5);
+  padding: clamp(var(--space-4), 4vw, var(--space-5));
+  border-radius: var(--radius-lg);
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 40%;
+  background: var(--gradient-ocean);
+  opacity: 0.12;
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+  pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero__eyebrow {
