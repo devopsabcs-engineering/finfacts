@@ -85,19 +85,19 @@ Build a scientifically rigorous, engaging Astro static site covering all extant 
 
 * [ ] Step 4.1: Build DistributionMap (MapLibre + deck.gl) with paired data-table alternative
   * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 163-184)
-* [ ] Step 4.2: Build SpeciesExplorer (Fuse.js), ConservationChart (Observable Plot), SizeComparison/DepthZones (D3), Quiz
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 186-214)
+* [ ] Step 4.2: Build SpeciesExplorer, ConservationChart, SizeComparison/DepthZones, Quiz, IdentificationKey, and pathway/engagement islands
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 186-224)
 * [ ] Step 4.3: Validate island hydration and bundle budget
-  * Run `npm run build`; confirm islands use `client:*` directives and non-interactive pages ship ~zero JS
+  * Run `npm run build`; confirm islands use `client:*` directives, non-interactive pages ship ~zero JS, and the deck.gl map island stays within its JS bundle budget (e.g., ≤250 KB gzipped, lazy-loaded)
 
 ### [ ] Implementation Phase 5: Layouts, Pages and Information Architecture
 
 <!-- parallelizable: false -->
 
 * [ ] Step 5.1: Build BaseLayout/SpeciesLayout with SEO meta, JSON-LD, and a11y skip-links
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 216-234)
-* [ ] Step 5.2: Build dynamic routes and IA pages (species, explore, map, lessons, search, pathways)
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 236-268)
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 226-244)
+* [ ] Step 5.2: Build dynamic routes and IA pages (species, explore, map, lessons, search, pathways, careers, toolkit)
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 246-280)
 * [ ] Step 5.3: Validate routing and page generation
   * Run `npm run build`; confirm one page per species via getStaticPaths and Pagefind index builds
 
@@ -106,9 +106,9 @@ Build a scientifically rigorous, engaging Astro static site covering all extant 
 <!-- parallelizable: true -->
 
 * [ ] Step 6.1: Author flagship species entries (one per living order) with full per-fact citations
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 270-291)
-* [ ] Step 6.2: Author foundational lessons, glossary, family nodes, and pathway overview content
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 293-317)
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 282-303)
+* [ ] Step 6.2: Author foundational lessons, glossary, family nodes, pathway and careers content
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 305-332)
 * [ ] Step 6.3: Validate content integrity
   * Run `npm run build`; confirm citation references resolve and review badges render
 
@@ -117,9 +117,9 @@ Build a scientifically rigorous, engaging Astro static site covering all extant 
 <!-- parallelizable: false -->
 
 * [ ] Step 7.1: Add Azure Static Web Apps + GitHub Actions workflow with PR previews
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 319-337)
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 334-352)
 * [ ] Step 7.2: Wire accessibility (axe-core) and Lighthouse CI gates, sitemap, and JSON-LD
-  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 339-361)
+  * Details: .copilot-tracking/details/2026-06-13/shark-education-site-details.md (Lines 354-376)
 
 ### [ ] Implementation Phase N: Validation
 

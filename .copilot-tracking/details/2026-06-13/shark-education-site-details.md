@@ -20,7 +20,7 @@ Files:
 * public/favicon.svg - Placeholder favicon
 
 Discrepancy references:
-* Addresses DR-01 (scope default) by structuring content/species to hold all extant sharks with optional chondrichthyan expansion
+* Addresses PD-02 (scope default) by structuring content/species to hold all extant sharks with optional chondrichthyan expansion
 
 Success criteria:
 * `npm install` resolves cleanly
@@ -142,7 +142,7 @@ Files:
 * src/lib/iucn.ts - IUCN v4 token bearer client, version check, assessment fetch
 
 Discrepancy references:
-* Addresses DR-02 (commercial-use confirmation) — defaults to non-commercial IUCN API with OBIS fallback
+* Addresses PD-01 (commercial-use confirmation) — defaults to non-commercial IUCN API with OBIS fallback
 
 Success criteria:
 * Simplified range polygons in `public/data/ranges/`
@@ -169,7 +169,7 @@ Files:
 * src/components/MapDataTable.tsx - Paired accessible occurrence/range table
 
 Discrepancy references:
-* Addresses DD-03 (mapping engine) — MapLibre + deck.gl over Mapbox/Leaflet
+* Addresses IP-04 (mapping engine) — MapLibre + deck.gl over Mapbox/Leaflet
 
 Success criteria:
 * Renders 100k+ points without per-load billing
@@ -183,9 +183,9 @@ Context references:
 Dependencies:
 * Step 3.2 completion (consumes baked GeoJSON)
 
-### Step 4.2: Build SpeciesExplorer (Fuse.js), ConservationChart (Observable Plot), SizeComparison/DepthZones (D3), Quiz
+### Step 4.2: Build SpeciesExplorer (Fuse.js), ConservationChart (Observable Plot), SizeComparison/DepthZones (D3), Quiz, IdentificationKey, and pathway/engagement islands
 
-Implement the remaining islands: client-side filter/grid explorer (Fuse.js) with order/family, IUCN status, ocean basin, depth, size, "divers encounter," "frequently filmed" filters; conservation dashboard (Observable Plot); size-vs-diver and depth-zone visualizers (D3); interactive quiz with spaced-repetition scheduling (client-only, no accounts by default).
+Implement the remaining islands: client-side filter/grid explorer (Fuse.js) with order/family, IUCN status, ocean basin, depth, size, "divers encounter," "frequently filmed" filters; conservation dashboard (Observable Plot); size-vs-diver and depth-zone visualizers (D3); interactive quiz with spaced-repetition scheduling (client-only, no accounts by default); interactive dichotomous ID key (step-through couplets to family/species); "Build a dive plan" and "Plan a shoot" planner islands driven by the diving/filming overlays; the "What are the odds?" ISAF risk explainer; and the citizen-science contribution hub.
 
 Files:
 * src/components/SpeciesExplorer.tsx - Fuse.js filter/grid island
@@ -193,21 +193,31 @@ Files:
 * src/components/SizeComparison.tsx - D3 shark-vs-human island
 * src/components/DepthZones.tsx - D3/Plot depth-range island
 * src/components/Quiz.tsx - Interactive quiz island with retrieval/spacing scheduling
+* src/components/IdentificationKey.tsx - Interactive dichotomous ID key island (couplets from the FAO/elasmo-key source gathered in DR-04)
+* src/components/DivePlanner.tsx - "Build a dive plan" island (region/season → species, depth/cert, operators, logging)
+* src/components/ShootPlanner.tsx - "Plan a shoot" island (target species/location → gear, light, ethics, permits)
+* src/components/RiskExplainer.tsx - "What are the odds?" ISAF risk-vs-everyday-risk island
+* src/components/CitizenScienceHub.tsx - Contribution hub (eggcase finds, dive sightings, iNaturalist links)
 
 Discrepancy references:
-* Addresses DR-03 (quiz persistence) — fully static client-side default; Azure Functions deferred (WI-02)
+* Addresses DD-03 (quiz persistence) — fully static client-side default; Azure Functions deferred (WI-02)
+* Addresses DR-05 (dichotomous ID key feature) — adds the IdentificationKey island; couplet source from DR-04
+* Addresses DR-07 (under-specified engaging features) — adds dive/shoot planners, risk explainer, citizen-science hub
 
 Success criteria:
 * Explorer filters operate on a pre-built client index
 * Conservation chart pairs colors with labels/icons (no color-only status)
 * Quiz schedules review without server persistence
+* ID key steps through couplets to a family/species result with a text fallback
+* Planners, risk explainer, and citizen-science hub render from schema overlays and ISAF data
 
 Context references:
-* shark-education-site-research.md (§Engaging Interactive Features) - Feature/data-source table
+* shark-education-site-research.md (§Engaging Interactive Features) - Feature/data-source table (ID key #1, planners, risk explainer, citizen-science hub)
 * content-pedagogy-research.md - Spaced repetition, retrieval practice, UDL 3.0
 
 Dependencies:
 * Step 2.2 completion (schema fields power filters/visuals)
+* DR-04 resolution provides the dichotomous-key couplet source for IdentificationKey
 
 ## Implementation Phase 5: Layouts, Pages and Information Architecture
 
@@ -233,7 +243,7 @@ Context references:
 Dependencies:
 * Step 2.2 completion
 
-### Step 5.2: Build dynamic routes and IA pages (species, explore, map, lessons, search, pathways)
+### Step 5.2: Build dynamic routes and IA pages (species, explore, map, lessons, search, pathways, careers, toolkit)
 
 Implement the dual-track IA: Home/onboarding with audience selector and ISAF myth-busting hero; Species Explorer; Biology Fundamentals; Taxonomy & Evolution; Ecology & Conservation; Scuba pathway; Filmmaking pathway; Careers; Toolkit. Use `getStaticPaths()` for per-species and per-lesson pages. Cross-link every concept page to exemplar species and every species page to related biology / diving / filming.
 
@@ -246,9 +256,11 @@ Files:
 * src/pages/search.astro - Pagefind UI
 * src/pages/pathways/scuba.astro - Scuba diving pathway
 * src/pages/pathways/filming.astro - Underwater filmmaking pathway
+* src/pages/careers.astro - Careers & Get Involved page
+* src/pages/toolkit.astro - Toolkit hub (glossary, ID key, data explorer, quizzes, methods)
 
 Discrepancy references:
-* Addresses DR-01 (scope) — species routes cover extant sharks with chondrichthyan expansion ready
+* Addresses PD-02 (scope) — species routes cover extant sharks with chondrichthyan expansion ready
 
 Success criteria:
 * One page generated per species and per lesson
@@ -290,27 +302,30 @@ Context references:
 Dependencies:
 * Step 2.2 completion
 
-### Step 6.2: Author foundational lessons, glossary, family nodes, and pathway overview content
+### Step 6.2: Author foundational lessons, glossary, family nodes, pathway and careers content
 
-Author Biology Fundamentals and Taxonomy & Evolution lessons, the glossary with pronunciation, family taxonomy nodes, and the Scuba/Filmmaking pathway overview content, applying the refutation-text pattern for misconception correction and tiered depth (concise core + "Going deeper").
+Author Biology Fundamentals and Taxonomy & Evolution lessons, the glossary with pronunciation, family taxonomy nodes, the Scuba/Filmmaking pathway overview content, and the Careers & Get Involved content, applying the refutation-text pattern for misconception correction and tiered depth (concise core + "Going deeper"). Pathway content uses the sources gathered in DR-04 (FAO/elasmo-key dichotomous key, named cinematographers, Green Fins-style diving ethics codes, exemplar-site differentiation).
 
 Files:
 * src/content/lessons/*.mdx - Biology, taxonomy, ecology/conservation lessons
 * src/content/families/*.mdx - Family taxonomy nodes
 * src/content/lessons/glossary.mdx - Glossary + pronunciation
 * src/content/lessons/pathway-scuba.mdx, src/content/lessons/pathway-filming.mdx - Pathway overviews
+* src/content/lessons/careers.mdx - Careers & Get Involved (study pathways, internships, societies)
 
 Success criteria:
 * Lessons end with a low-stakes interactive (active learning)
 * Misconception correction uses refutation-text + ISAF framing without fear-mongering imagery
 * Tiered depth present (core + expandable college-level)
+* Pathway and careers content cite the DR-04 sources credibly
 
 Context references:
 * content-pedagogy-research.md - Active learning, UDL 3.0, refutation-text, tiered depth
-* shark-education-site-research.md (§Pedagogy & Credibility) - Evidence-grounded patterns
+* shark-education-site-research.md (§Pedagogy & Credibility; §Recommended Information Architecture) - Evidence-grounded patterns, Careers section
 
 Dependencies:
 * Step 2.2 completion
+* DR-04 resolution provides pathway/careers source material
 
 ## Implementation Phase 7: CI/CD, Accessibility and SEO Gates
 
