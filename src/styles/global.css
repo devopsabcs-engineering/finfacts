@@ -425,9 +425,18 @@ a:hover {
 }
 
 .badge--iucn {
-  border-color: var(--badge-color, var(--color-border));
+  /* Status hue is carried by the border + the (decorative, aria-hidden) symbol.
+     Text stays at the high-contrast body color so it always meets WCAG AA —
+     the raw IUCN palette (bright yellow/green) fails contrast as text. */
+  border-color: color-mix(in srgb, var(--badge-color, var(--color-border)) 70%, var(--color-border));
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--badge-color, var(--color-border)) 12%, var(--color-bg));
+}
+
+/* The leading status glyph is aria-hidden, so it may carry the vivid hue. */
+.badge--iucn > [aria-hidden="true"] {
   color: var(--badge-color, var(--color-text));
-  background: color-mix(in srgb, var(--badge-color, var(--color-border)) 12%, transparent);
+  -webkit-text-stroke: 0.4px color-mix(in srgb, var(--badge-color, #000) 55%, #000);
 }
 
 /* ==========================================================================
@@ -496,6 +505,21 @@ a:hover {
 
 .audience__card {
   justify-content: space-between;
+}
+
+/* ==========================================================================
+   MapLibre control overrides
+   ========================================================================== */
+
+/* MapLibre's default attribution links are mid-grey with no underline, which
+   fails the WCAG "links distinguishable without colour" check against the
+   black surrounding text. Force an underline (and darker hue) on the
+   third-party control. !important is required because maplibre-gl.css is
+   injected at runtime, after this stylesheet. */
+.maplibregl-ctrl-attrib a,
+.maplibregl-ctrl-attrib-inner a {
+  color: #1a1a1a !important;
+  text-decoration: underline !important;
 }
 
 /* ==========================================================================

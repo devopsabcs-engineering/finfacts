@@ -72,10 +72,12 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"
-          output_location: "dist"
-          # We already ran `npm run build`; do not let Oryx rebuild and re-run the
-          # slow network-bound prebuild a second time.
+          # We already ran `npm run build`; deploy the prebuilt output directly.
+          # With skip_app_build, the action treats app_location as the artifacts
+          # folder, so point it at dist/ (which contains index.html and the
+          # staticwebapp.config.json emitted from public/).
+          app_location: "dist"
+          output_location: ""
           skip_app_build: true
 
   close_pull_request:
