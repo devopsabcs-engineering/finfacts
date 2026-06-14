@@ -82,13 +82,15 @@ const jsonLd = buildLearningResource({
 >
   <section class="species-section" aria-labelledby="distribution-heading">
     <h2 id="distribution-heading">Distribution</h2>
-    <DistributionMap
-      client:only="preact"
-      speciesKey={speciesKey}
-      scientificName={scientificName}
-      commonName={commonName}
-      height={420}
-    />
+    <div class="map-embed" style="--map-embed-h: 472px">
+      <DistributionMap
+        client:only="preact"
+        speciesKey={speciesKey}
+        scientificName={scientificName}
+        commonName={commonName}
+        height={420}
+      />
+    </div>
     <MapDataTable
       client:visible
       speciesKey={speciesKey}

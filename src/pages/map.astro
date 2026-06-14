@@ -31,13 +31,15 @@ const description =
     Showing occurrence and range data for <em>{scientificName}</em> ({commonName}).
     Open any species profile for its own map.
   </p>
-  <DistributionMap
-    client:only="preact"
-    speciesKey={speciesKey}
-    scientificName={scientificName}
-    commonName={commonName}
-    height={560}
-  />
+  <div class="map-embed" style="--map-embed-h: 612px">
+    <DistributionMap
+      client:only="preact"
+      speciesKey={speciesKey}
+      scientificName={scientificName}
+      commonName={commonName}
+      height={560}
+    />
+  </div>
   <MapDataTable
     client:visible
     speciesKey={speciesKey}

@@ -168,7 +168,7 @@ export default function DistributionMap({
           outline: 'none',
         }}
       />
-      <figcaption style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+      <figcaption style={{ fontSize: '0.85rem', marginTop: '0.5rem', minHeight: '2.6em' }}>
         <span role="status" aria-live="polite">
           {status === 'loading' && 'Loading occurrence map\u2026'}
           {status === 'ready' &&

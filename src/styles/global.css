@@ -511,6 +511,14 @@ a:hover {
    MapLibre control overrides
    ========================================================================== */
 
+/* The distribution map is a client:only island (WebGL, no SSR), so it occupies
+   zero height until hydration. Reserve its final height up front to avoid a
+   large cumulative-layout-shift when the map mounts. --map-embed-h is set per
+   usage to match the map height plus the caption block. */
+.map-embed {
+  min-height: var(--map-embed-h, 600px);
+}
+
 /* MapLibre's default attribution links are mid-grey with no underline, which
    fails the WCAG "links distinguishable without colour" check against the
    black surrounding text. Force an underline (and darker hue) on the
