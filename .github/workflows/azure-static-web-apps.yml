@@ -5,16 +5,25 @@
 # automatically when the PR closes.
 #
 # REQUIRED GITHUB SECRETS
-#   AZURE_STATIC_WEB_APPS_API_TOKEN  Deployment token for the SWA resource.
-#                                    Get it from: Azure Portal > the Static Web
-#                                    App > "Manage deployment token", then add it
-#                                    under repo Settings > Secrets and variables >
-#                                    Actions. Never hardcode this value.
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#                                    OIDC identifiers for azure/login. Used by
+#                                    build_and_deploy (to provision the SWA from
+#                                    Bicep when missing and fetch a fresh
+#                                    deployment token), close_pull_request, and
+#                                    teardown. Created by infra/setup-teardown-oidc.ps1.
 #   GITHUB_TOKEN                     Provided automatically by Actions; used by the
 #                                    SWA action to post the PR preview URL comment.
 #
 # OPTIONAL SECRETS (forwarded to the build so prebuild can bake richer data)
 #   IUCN_API_TOKEN                   IUCN Red List v4 bearer token (non-commercial).
+#
+# SELF-PROVISIONING DEPLOY
+#   build_and_deploy logs in via OIDC, ensures the Static Web App exists
+#   (deploying infra/main.bicep if it was never created or was torn down), then
+#   retrieves the live deployment token at run time. This means no static
+#   AZURE_STATIC_WEB_APPS_API_TOKEN secret is needed and deploys keep working
+#   across teardown/re-provision cycles (a stale token would be rejected with
+#   "No matching Static Web App was found or the api key was invalid").
 #
 # NOTE ON THE SLOW PREBUILD
 #   `npm run build` runs scripts/fetch-occurrences.mjs (GBIF + OBIS occurrence
@@ -51,12 +60,12 @@ on:
     inputs:
       resource_group:
         description: "Resource group containing the Static Web App"
-        required: true
+        required: false
         default: rg-finfacts
         type: string
       static_web_app_name:
         description: "Name of the Static Web App to delete"
-        required: true
+        required: false
         default: finfacts
         type: string
       delete_resource_group:
@@ -65,8 +74,9 @@ on:
         default: false
         type: boolean
       confirm:
-        description: 'Type "DELETE" to confirm permanent teardown'
-        required: true
+        description: 'Teardown ONLY: type "DELETE" to permanently remove resources (leave blank to just deploy)'
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -76,10 +86,18 @@ permissions:
 jobs:
   build_and_deploy:
     # Skip on PR "closed" events — that path is handled by close_pull_request.
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    # On manual dispatch, deploy unless the run is a teardown (confirm == DELETE).
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.action != 'closed') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm != 'DELETE')
     name: Build and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,10 +121,52 @@ jobs:
           # Forwarded if configured; safe to be empty (script falls back to OBIS).
           IUCN_API_TOKEN: ${{ secrets.IUCN_API_TOKEN }}
 
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure Static Web App exists
+        id: ensure_swa
+        env:
+          RESOURCE_GROUP: rg-finfacts
+          SWA_NAME: finfacts
+          LOCATION: eastus2
+        run: |
+          set -euo pipefail
+          # Create the resource group if it does not exist.
+          if ! az group exists --name "$RESOURCE_GROUP" | grep -q true; then
+            echo "Creating resource group '$RESOURCE_GROUP'..."
+            az group create --name "$RESOURCE_GROUP" --location "$LOCATION" -o none
+          fi
+          # Provision the Static Web App from Bicep if it is missing (idempotent).
+          if ! az staticwebapp show --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+            echo "Static Web App '$SWA_NAME' not found; provisioning from infra/main.bicep..."
+            az deployment group create \
+              --resource-group "$RESOURCE_GROUP" \
+              --template-file infra/main.bicep \
+              --parameters name="$SWA_NAME" location="$LOCATION" sku=Free \
+              -o none
+          else
+            echo "Static Web App '$SWA_NAME' already exists."
+          fi
+          # Retrieve the current deployment token and expose it as a masked output.
+          TOKEN="$(az staticwebapp secrets list --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" --query 'properties.apiKey' -o tsv)"
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Failed to retrieve Static Web App deployment token."
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          # Use the freshly retrieved token so deploys keep working even after a
+          # teardown/re-provision cycle (the stale repo secret would be invalid).
+          azure_static_web_apps_api_token: ${{ steps.ensure_swa.outputs.token }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           # We already ran `npm run build`; deploy the prebuilt output directly.
@@ -123,11 +183,40 @@ jobs:
     name: Close Pull Request Preview
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
     steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get deployment token
+        id: token
+        env:
+          RESOURCE_GROUP: rg-finfacts
+          SWA_NAME: finfacts
+        run: |
+          set -euo pipefail
+          if ! az staticwebapp show --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+            echo "::notice::Static Web App '$SWA_NAME' not found; nothing to close."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          TOKEN="$(az staticwebapp secrets list --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" --query 'properties.apiKey' -o tsv)"
+          echo "::add-mask::$TOKEN"
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Close preview environment
+        if: steps.token.outputs.exists == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.token }}
           action: "close"
 
   teardown:

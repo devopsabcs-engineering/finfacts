@@ -132,38 +132,62 @@ else {
     Write-Host "    Reusing service principal (objectId $spId)."
 }
 
-# --- 2. Federated credential (environment subject) --------------------------
+# --- 2. Federated credentials -----------------------------------------------
+# The teardown job runs in the `production-teardown` environment, so its token
+# subject is an environment subject. The build_and_deploy job runs on pushes to
+# main and on pull requests, so it needs branch + pull_request subjects too —
+# without these, azure/login in that job fails ("No matching federated identity
+# record found"). One app, multiple federated credentials.
 $repoParts = $GitHubRepo.Split('/')
 if ($repoParts.Count -ne 2) { throw "GitHubRepo must be 'owner/name'. Got '$GitHubRepo'." }
-$subject = "repo:$($GitHubRepo):environment:$Environment"
-$credName = "gh-$($repoParts[1])-env-$Environment"
-Write-Host "==> Ensuring federated credential '$credName'" -ForegroundColor Cyan
-Write-Host "    Subject: $subject"
+$repoName = $repoParts[1]
 
-$existingCred = az ad app federated-credential list --id $appId `
-    --query "[?subject=='$subject'].name | [0]" --output tsv
-if ([string]::IsNullOrWhiteSpace($existingCred)) {
-    $fcParams = @{
-        name      = $credName
+function Set-FederatedCredential {
+    param(
+        [Parameter(Mandatory)][string]$ClientAppId,
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Subject
+    )
+    Write-Host "==> Ensuring federated credential '$Name'" -ForegroundColor Cyan
+    Write-Host "    Subject: $Subject"
+    $existing = az ad app federated-credential list --id $ClientAppId `
+        --query "[?subject=='$Subject'].name | [0]" --output tsv
+    if (-not [string]::IsNullOrWhiteSpace($existing)) {
+        Write-Host "    Already exists ('$existing')."
+        return
+    }
+    $body = @{
+        name      = $Name
         issuer    = 'https://token.actions.githubusercontent.com'
-        subject   = $subject
+        subject   = $Subject
         audiences = @('api://AzureADTokenExchange')
     } | ConvertTo-Json -Compress
-    # Pass the JSON via a temp file to avoid shell-quoting issues with the body.
     $tmp = New-TemporaryFile
     try {
-        $fcParams | Set-Content -Path $tmp -Encoding utf8
-        az ad app federated-credential create --id $appId --parameters "@$tmp" | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'Failed to create federated credential.' }
+        $body | Set-Content -Path $tmp -Encoding utf8
+        az ad app federated-credential create --id $ClientAppId --parameters "@$tmp" | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Failed to create federated credential '$Name'." }
     }
     finally {
         Remove-Item $tmp -ErrorAction SilentlyContinue
     }
-    Write-Host '    Federated credential created.'
+    Write-Host '    Created.'
 }
-else {
-    Write-Host "    Federated credential for this subject already exists ('$existingCred')."
-}
+
+# Teardown: environment subject.
+Set-FederatedCredential -ClientAppId $appId `
+    -Name "gh-$repoName-env-$Environment" `
+    -Subject "repo:$($GitHubRepo):environment:$Environment"
+
+# Deploy: main branch push.
+Set-FederatedCredential -ClientAppId $appId `
+    -Name "gh-$repoName-branch-main" `
+    -Subject "repo:$($GitHubRepo):ref:refs/heads/main"
+
+# Deploy: pull requests (preview environments).
+Set-FederatedCredential -ClientAppId $appId `
+    -Name "gh-$repoName-pull-request" `
+    -Subject "repo:$($GitHubRepo):pull_request"
 
 # --- 3. Role assignment -----------------------------------------------------
 # Subscription scope by default: `az staticwebapp delete` polls a subscription-
@@ -202,7 +226,10 @@ Write-Host '==> Done. OIDC is configured for the teardown job.' -ForegroundColor
 Write-Host "    App ID (client):  $appId"
 Write-Host "    Tenant ID:        $tenantId"
 Write-Host "    Subscription ID:  $subId"
-Write-Host "    Federated subject: $subject"
+Write-Host '    Federated subjects:'
+Write-Host "      - repo:$GitHubRepo:environment:$Environment"
+Write-Host "      - repo:$GitHubRepo:ref:refs/heads/main"
+Write-Host "      - repo:$GitHubRepo:pull_request"
 Write-Host ''
 Write-Host '    NOTE: Role assignments and secret propagation can take a minute.' -ForegroundColor Yellow
 Write-Host "    Also confirm repo Settings > Environments > '$Environment' has required reviewers."
