@@ -47,6 +47,7 @@ on:
       resource_group:
         description: "Resource group containing the Static Web App"
         required: true
+        default: rg-finfacts
         type: string
       static_web_app_name:
         description: "Name of the Static Web App to delete"
