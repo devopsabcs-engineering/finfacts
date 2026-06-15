@@ -31,8 +31,11 @@
 #   run before any resource is deleted. Azure auth uses OIDC (no stored secret),
 #   which requires these repo/environment secrets/variables:
 #     AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
-#   and a federated credential on the app registration scoped to this repo's
-#   `production-teardown` environment.
+#   and a federated credential on the app registration whose subject is the
+#   ENVIRONMENT subject (not a branch):
+#     repo:devopsabcs-engineering/finfacts:environment:production-teardown
+#   Run infra/setup-teardown-oidc.ps1 to create the app registration, federated
+#   credential, role assignment, and the three secrets in one step.
 
 name: Azure Static Web Apps CI/CD
 
