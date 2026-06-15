@@ -22,6 +22,17 @@
 #   warnings and never throws), so the build still succeeds in CI even if an API
 #   is unreachable. We build ourselves and deploy with skip_app_build so Oryx
 #   does not re-run a build we already control.
+#
+# MANUAL TEARDOWN (destructive)
+#   The `teardown` job deletes the Static Web App resource. It only runs via the
+#   "Run workflow" button (workflow_dispatch) and is gated by the
+#   `production-teardown` GitHub Environment. Add required reviewers to that
+#   environment under repo Settings > Environments so a human must approve the
+#   run before any resource is deleted. Azure auth uses OIDC (no stored secret),
+#   which requires these repo/environment secrets/variables:
+#     AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#   and a federated credential on the app registration scoped to this repo's
+#   `production-teardown` environment.
 
 name: Azure Static Web Apps CI/CD
 
@@ -31,6 +42,21 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: "Resource group containing the Static Web App"
+        required: true
+        type: string
+      static_web_app_name:
+        description: "Name of the Static Web App to delete"
+        required: true
+        default: finfacts
+        type: string
+      confirm:
+        description: 'Type "DELETE" to confirm permanent teardown'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -92,3 +118,39 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: "close"
+
+  teardown:
+    # Destructive: deletes the Static Web App resource. Manual-only, and the
+    # `production-teardown` environment forces an approval gate before it runs.
+    # Configure required reviewers under repo Settings > Environments.
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'DELETE'
+    name: Teardown Static Web App
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production-teardown
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Delete Static Web App
+        env:
+          RESOURCE_GROUP: ${{ github.event.inputs.resource_group }}
+          SWA_NAME: ${{ github.event.inputs.static_web_app_name }}
+        run: |
+          set -euo pipefail
+          echo "Looking up Static Web App '$SWA_NAME' in resource group '$RESOURCE_GROUP'..."
+          if ! az staticwebapp show --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+            echo "::notice::Static Web App '$SWA_NAME' not found in '$RESOURCE_GROUP'; nothing to delete."
+            exit 0
+          fi
+          echo "Deleting Static Web App '$SWA_NAME'..."
+          az staticwebapp delete --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" --yes
+          echo "::notice::Static Web App '$SWA_NAME' deleted from '$RESOURCE_GROUP'."
+
