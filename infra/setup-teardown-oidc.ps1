@@ -170,10 +170,14 @@ else {
 }
 
 # --- 4. GitHub Actions secrets ----------------------------------------------
+# These three values are non-secret identifiers (client/tenant/subscription IDs).
+# Set them via --body so no trailing newline is captured. Piping into
+# `gh secret set --body -` from PowerShell appends a CR/LF, which corrupts the
+# value (e.g. azure/login then fails with AADSTS90002 "Tenant not found").
 Write-Host "==> Setting GitHub secrets on $GitHubRepo" -ForegroundColor Cyan
-$appId    | gh secret set AZURE_CLIENT_ID       --repo $GitHubRepo --body -
-$tenantId | gh secret set AZURE_TENANT_ID       --repo $GitHubRepo --body -
-$subId    | gh secret set AZURE_SUBSCRIPTION_ID --repo $GitHubRepo --body -
+gh secret set AZURE_CLIENT_ID       --repo $GitHubRepo --body $appId.Trim()
+gh secret set AZURE_TENANT_ID       --repo $GitHubRepo --body $tenantId.Trim()
+gh secret set AZURE_SUBSCRIPTION_ID --repo $GitHubRepo --body $subId.Trim()
 Write-Host '    AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID set.'
 
 Write-Host ''
