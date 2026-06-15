@@ -24,11 +24,13 @@
 #   does not re-run a build we already control.
 #
 # MANUAL TEARDOWN (destructive)
-#   The `teardown` job deletes the Static Web App resource. It only runs via the
-#   "Run workflow" button (workflow_dispatch) and is gated by the
-#   `production-teardown` GitHub Environment. Add required reviewers to that
-#   environment under repo Settings > Environments so a human must approve the
-#   run before any resource is deleted. Azure auth uses OIDC (no stored secret),
+#   The `teardown` job deletes the Static Web App resource and, when the
+#   `delete_resource_group` input is true, the entire resource group (all
+#   resources in it). It only runs via the "Run workflow" button
+#   (workflow_dispatch) and is gated by the `production-teardown` GitHub
+#   Environment. Add required reviewers to that environment under repo Settings >
+#   Environments so a human must approve the run before any resource is deleted.
+#   Azure auth uses OIDC (no stored secret),
 #   which requires these repo/environment secrets/variables:
 #     AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
 #   and a federated credential on the app registration whose subject is the
@@ -57,6 +59,11 @@ on:
         required: true
         default: finfacts
         type: string
+      delete_resource_group:
+        description: "Also delete the entire resource group (removes ALL resources in it)"
+        required: false
+        default: false
+        type: boolean
       confirm:
         description: 'Type "DELETE" to confirm permanent teardown'
         required: true
@@ -150,11 +157,25 @@ jobs:
         run: |
           set -euo pipefail
           echo "Looking up Static Web App '$SWA_NAME' in resource group '$RESOURCE_GROUP'..."
-          if ! az staticwebapp show --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
-            echo "::notice::Static Web App '$SWA_NAME' not found in '$RESOURCE_GROUP'; nothing to delete."
-            exit 0
+          if az staticwebapp show --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+            echo "Deleting Static Web App '$SWA_NAME'..."
+            az staticwebapp delete --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" --yes
+            echo "::notice::Static Web App '$SWA_NAME' deleted from '$RESOURCE_GROUP'."
+          else
+            echo "::notice::Static Web App '$SWA_NAME' not found in '$RESOURCE_GROUP'; skipping resource delete."
           fi
-          echo "Deleting Static Web App '$SWA_NAME'..."
-          az staticwebapp delete --name "$SWA_NAME" --resource-group "$RESOURCE_GROUP" --yes
-          echo "::notice::Static Web App '$SWA_NAME' deleted from '$RESOURCE_GROUP'."
+
+      - name: Delete resource group
+        if: ${{ github.event.inputs.delete_resource_group == 'true' }}
+        env:
+          RESOURCE_GROUP: ${{ github.event.inputs.resource_group }}
+        run: |
+          set -euo pipefail
+          if az group exists --name "$RESOURCE_GROUP" | grep -q true; then
+            echo "Deleting resource group '$RESOURCE_GROUP' (this removes ALL resources in it)..."
+            az group delete --name "$RESOURCE_GROUP" --yes
+            echo "::notice::Resource group '$RESOURCE_GROUP' deleted."
+          else
+            echo "::notice::Resource group '$RESOURCE_GROUP' not found; nothing to delete."
+          fi
 
