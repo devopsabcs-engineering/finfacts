@@ -39,8 +39,15 @@
     Display name for the Entra ID app registration. Defaults to 'finfacts-teardown-oidc'.
 
 .PARAMETER Role
-    RBAC role to grant at the resource-group scope. 'Contributor' is sufficient to
-    delete a Static Web App. Defaults to 'Contributor'.
+    RBAC role to grant. 'Contributor' is sufficient to delete a Static Web App.
+    Defaults to 'Contributor'.
+
+.PARAMETER ScopeLevel
+    Where to assign the role: 'Subscription' (default) or 'ResourceGroup'.
+    Subscription scope is required because `az staticwebapp delete` polls an
+    async operation-status resource at subscription/location scope
+    (Microsoft.Web/locations/.../staticSitesOperationStatuses), which a
+    resource-group-scoped assignment cannot read.
 
 .PARAMETER SubscriptionId
     Optional subscription to target. Defaults to the current az context.
@@ -64,6 +71,9 @@ param(
     [string]$AppName = 'finfacts-teardown-oidc',
 
     [string]$Role = 'Contributor',
+
+    [ValidateSet('Subscription', 'ResourceGroup')]
+    [string]$ScopeLevel = 'Subscription',
 
     [string]$SubscriptionId
 )
@@ -155,8 +165,15 @@ else {
     Write-Host "    Federated credential for this subject already exists ('$existingCred')."
 }
 
-# --- 3. Role assignment at the resource-group scope -------------------------
-$scope = "/subscriptions/$subId/resourceGroups/$ResourceGroup"
+# --- 3. Role assignment -----------------------------------------------------
+# Subscription scope by default: `az staticwebapp delete` polls a subscription-
+# level operation-status resource that a resource-group-scoped role cannot read.
+if ($ScopeLevel -eq 'Subscription') {
+    $scope = "/subscriptions/$subId"
+}
+else {
+    $scope = "/subscriptions/$subId/resourceGroups/$ResourceGroup"
+}
 Write-Host "==> Ensuring '$Role' role assignment at $scope" -ForegroundColor Cyan
 $existingAssignment = az role assignment list --assignee $appId --scope $scope `
     --query "[?roleDefinitionName=='$Role'] | [0].id" --output tsv 2>$null
